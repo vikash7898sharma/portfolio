@@ -1,50 +1,56 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, FolderKanban, LayoutDashboard, LogIn, LogOut, Menu, X, Sparkles, Moon, Sun } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { Link, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Home, FolderKanban, BarChart3, Settings, Menu, X, Sparkles, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
-  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
 
   const links = [
     { to: '/', label: 'Home', icon: Home },
-    { to: '/builder', label: 'Builder', icon: FolderKanban },
-    { to: '/analytics', label: 'Analytics', icon: LayoutDashboard },
+    { to: '/builder', label: 'Builder', icon: Settings },
+    { to: '/analytics', label: 'Analytics', icon: BarChart3 },
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50">
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="fixed top-0 left-0 right-0 z-50"
+    >
       <div className="glass-card mx-4 mt-4 px-4 py-3">
         <div className="flex items-center justify-between">
+          {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+            <motion.div
+              whileHover={{ rotate: 180 }}
+              transition={{ duration: 0.3 }}
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-glow"
+            >
               <Sparkles className="w-4 h-4 text-white" />
-            </div>
+            </motion.div>
             <span className="font-display font-bold text-lg gradient-text hidden sm:block">
               AI Portfolio Pro
             </span>
           </Link>
 
+          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-1">
-            {links.map(link => {
+            {links.map((link) => {
               const Icon = link.icon;
-              const active = location.pathname === link.to;
+              const isActive = location.pathname === link.to;
               return (
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                    active ? 'bg-primary/10 text-primary' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                    isActive
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -54,63 +60,96 @@ export default function Navbar() {
             })}
           </div>
 
+          {/* Right Actions */}
           <div className="flex items-center gap-2">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={toggleTheme}
-              className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
             >
-              {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-            </button>
+              <AnimatePresence mode="wait">
+                {theme === 'dark' ? (
+                  <motion.div
+                    key="moon"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                  >
+                    <Moon className="w-5 h-5" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="sun"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                  >
+                    <Sun className="w-5 h-5" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
 
-            {user ? (
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:block text-sm">Sign Out</span>
-              </button>
-            ) : (
-              <Link
-                to="/login"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-secondary text-white text-sm font-medium"
-              >
-                <LogIn className="w-4 h-4" />
-                Sign In
-              </Link>
-            )}
+            <Link
+              to="/portfolio"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+            >
+              <FolderKanban className="w-4 h-4" />
+              <span className="text-sm font-medium">View Portfolio</span>
+            </Link>
 
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden p-2 rounded-lg text-gray-400 hover:text-white"
+              className="md:hidden p-2 rounded-xl text-gray-400 hover:text-white"
             >
               {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {menuOpen && (
-          <div className="md:hidden mt-4 pt-4 border-t border-dark-400 space-y-1">
-            {links.map(link => {
-              const Icon = link.icon;
-              const active = location.pathname === link.to;
-              return (
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden mt-4 pt-4 border-t border-white/10"
+            >
+              <div className="flex flex-col gap-1">
+                {links.map((link) => {
+                  const Icon = link.icon;
+                  const isActive = location.pathname === link.to;
+                  return (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      onClick={() => setMenuOpen(false)}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl ${
+                        isActive
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="font-medium">{link.label}</span>
+                    </Link>
+                  );
+                })}
                 <Link
-                  key={link.to}
-                  to={link.to}
+                  to="/portfolio"
                   onClick={() => setMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
-                    active ? 'bg-primary/10 text-primary' : 'text-gray-400 hover:text-white hover:bg-white/5'
-                  }`}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-primary"
                 >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium">{link.label}</span>
+                  <FolderKanban className="w-5 h-5" />
+                  <span className="font-medium">View Portfolio</span>
                 </Link>
-              );
-            })}
-          </div>
-        )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </nav>
+    </motion.nav>
   );
 }
